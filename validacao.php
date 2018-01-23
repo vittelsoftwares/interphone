@@ -23,7 +23,9 @@ or die("Could not execute the select query.");
 
 if (mysqli_num_rows($query) != 1) {
     // Mensagem de erro quando os dados são inválidos e/ou o usuário não foi encontrado
-    echo "Login inválido!";exit;
+    echo "Login inválido!";
+    header("Location: login.php?erro=01");
+    exit;
 
 } else {
     // Salva os dados encontados na variável $resultado

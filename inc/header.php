@@ -41,7 +41,7 @@
 <body>
 
 <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="brand"><a href="/interphone/index.php" ><img src="/interphone/css/logo_interphone.png" class="img-responsive" style="max-width: 100%;float: left;" alt="Imagem Responsiva"></a></div>
+    <div class="brand"><a href="/interphone/index.php" ><img src="/interphone/css/logo_interphone_pequeno.png" class="img-responsive" style="max-width: 100%;float: left;max-width: 100%;padding-left: 10px;float: left;padding-top: 5px;" alt="Imagem Responsiva"></a></div>
     <div class="container">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">

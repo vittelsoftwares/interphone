@@ -31,6 +31,7 @@ if (!isset($_SESSION['UsuarioID']) OR ($_SESSION['UsuarioNivel'] <$nivel_necessa
 
         <?php
         include("customers/connection.php");
+        include("modaldeleteuser.php");
 
         if(isset($_POST['submit'])) {
             $name = $_POST['name'];
@@ -69,7 +70,7 @@ $pagina = intval($_GET['pagina']);
 
 $item = $pagina*$itens_por_pagina;
 // Puxar moradores do banco
-$sql_code = "select name, email, username, nivel from login";
+$sql_code = "select id, name, email, username, nivel from login";
 $execute = $mysqli->query($sql_code) or die($mysqli->error);
 $morador = $execute->fetch_assoc();
 $num = $execute->num_rows;
@@ -154,6 +155,12 @@ $num_paginas = ceil($num_total/$itens_por_pagina);
 
             <div class="row">
              <div class="form-group .col-xs-6 .col-sm-3">
+             <?php if ($_GET["excluir"] == 01){?>
+                                                <div id="msgerro" class="alert alert-success" role="alert">
+                                                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                                                    <span class="sr-only"></span>
+                                                    Usuário excluido com sucesso!
+                                                </div><?php }?>
                 <label for="name">Nome</label>
              <div class="inner-addon left-addon">
              <i class="glyphicon glyphicon-list-alt"></i>
@@ -179,7 +186,7 @@ $num_paginas = ceil($num_total/$itens_por_pagina);
                 <label for="campo2">Usuário</label>
              <div class="inner-addon left-addon">
              <i class="glyphicon glyphicon-user"></i>
-                <input type="text" class="form-control" name="username" placeholder="Digite seu usuário" required>
+                <input type="text" class="form-control" name="username" placeholder="Digite um usuário" required>
             </div>
             </div>
                 </div>
@@ -189,7 +196,7 @@ $num_paginas = ceil($num_total/$itens_por_pagina);
                 <label id="msgsenha" for="campo2">Senha </label>
              <div class="inner-addon left-addon">
              <i class="glyphicon glyphicon-lock"></i>
-                <input type="password" class="form-control" name="password" onkeyup="checkLength(this)" placeholder="Digite sua senha" required>
+                <input type="password" class="form-control" name="password" onkeyup="checkLength(this)" placeholder="Digite uma senha" required>
                </div>
             </div>
                 <br>
@@ -208,9 +215,8 @@ $num_paginas = ceil($num_total/$itens_por_pagina);
 
             <div class="row" >
                 <div class="form-group .col-xs-6 .col-sm-3">
-                    <input type="submit" name="submit" id="submit" tabindex="4" class="form-control btn btn-success" value="Cadastrar" disabled>                </div>
+                    <input type="submit" name="submit" id="submit" tabindex="4" class="form-control btn btn-success" value="Cadastrar" disabled></div>
             </div>
-
         </form>
         </div>
 
@@ -234,8 +240,8 @@ $num_paginas = ceil($num_total/$itens_por_pagina);
                 </td>
 
                 <td><?php echo $morador['username']; ?></td>
-                <td class="actions text-center"><a href="edit.php?id=<?php echo $morador['id']; ?>" class="btn btn-sm btn-warning"><i class="fa fa-pencil"></i> Editar</a>
-                    <?php if ($morador['nivel'] != 3){ ?><a href="#" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#delete-modal" data-customer="<?php echo $morador['id']; ?>" data-morador="<?php echo $morador['name']; ?>"> <i class="glyphicon glyphicon-remove"></i> Excluir</a>
+                <td class="actions text-center"><a href="#" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#edit-modal" data-customer="<?php echo $morador['id']; ?>" data-morador="<?php echo $morador['name']; ?>"><i class="fa fa-pencil"></i> Editar</a>
+                    <?php if ($morador['nivel'] != 3){ ?><a href="#" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#delete2-modal" data-customer="<?php echo $morador['id']; ?>" data-morador="<?php echo $morador['name']; ?>"> <i class="glyphicon glyphicon-remove"></i> Excluir</a>
                     <?php } else {?><a href="#" class="btn btn-sm btn-danger" disabled> <i class="glyphicon glyphicon-remove"></i> Excluir</a><?php }?></td>
 
 

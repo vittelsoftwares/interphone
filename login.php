@@ -10,7 +10,7 @@
     <style>
         body {
     padding-top: 90px;
-    background-color: #ededed;
+    background-color: #0c8dcd;
 }
 .panel-login {
     border-color: #ccc;
@@ -65,7 +65,7 @@
     border-color: #ccc;
 }
 .btn-login {
-    background-color: #59B2E0;
+    background-color: #0c8dcd;
     outline: none;
     color: #fff;
     font-size: 14px;
@@ -144,6 +144,12 @@
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.2/css/font-awesome.min.css">
+    
+    <?php include("licenca.php");
+    if (isset($licenciado)){
+        
+    ?>
+    
 </head>
 <body>
     <div class="container">
@@ -152,7 +158,8 @@
                 <div class="panel panel-login">
                     <div class="panel-heading">
                         <div class="row">
-                            <img src="css/logo.png" class="img-responsive" alt="Imagem Responsiva">                        </div>
+                            <img src="css/logo.png" style="padding: 20px;" class="img-responsive" alt="Imagem Responsiva">
+                        </div>
                         <hr>
                     </div>
                     <div class="panel-body">
@@ -162,6 +169,12 @@
                                     <div class="form-group">
                                     <div class="row">
                                         <div class="col-sm-6 col-sm-offset-3">
+                                            <?php if ($_GET["erro"] == 01){?>
+                                                <div id="msgerro" class="alert alert-danger" role="alert">
+                                                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                                                    <span class="sr-only">Erro:</span>
+                                                    Usuário ou Senha incorreto!
+                                                </div><?php }?>
                                             <div class="inner-addon left-addon">
                                                 <i class="glyphicon glyphicon-user"></i>
                                         <input type="text" name="username" id="username" tabindex="1" class="form-control" placeholder="Usuário" required>
@@ -186,9 +199,12 @@
                                     <div class="form-group">
                                         <div class="row">
                                             <div class="col-sm-6 col-sm-offset-3">
-                                                <input type="submit" name="submit" id="submit" tabindex="4" class="form-control btn btn-login" value="Log In">
+                                                <input type="submit" name="submit" id="submit" tabindex="4" class="form-control btn btn-login" value="Entrar">
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="form-group text-center">
+                                        <label for="licenca" style="color: #616161;font-style: italic;"> Software licenciado para: <?php echo $licenciado;?></label>
                                     </div>
                                     <div class="form-group">
                                         <div class="row">
@@ -209,7 +225,7 @@
     </div>
 <hr>
     <footer2 class="container">
-<p><a href="http://www.vittel.com.br" target="_blank" style="margin-left: 5%">&copy;2017 - Vittel Softwares e Comunicações</a></p>
+<p><a href="http://www.vittel.com.br" target="_blank" style="margin-left: 5%; color: white">&copy;2017 - Vittel Softwares e Comunicações</a></p>
     </footer2>
 
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
@@ -222,4 +238,7 @@
 
 
 </body>
+    <?php  }else{
+        echo "Erro de licensa!";
+    }?>
 </html>
