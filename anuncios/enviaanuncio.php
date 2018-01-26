@@ -1,77 +1,200 @@
 <?php
-require_once('functions.php');
-edit();
 include_once("connection.php");
-
 ?>
 <?php
 
-//Enviando os dados para o banco de dados.
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app) VALUES ('from-internal', '_$_POST[quadralote]', '1', 'Answer')");
+$sql_code = "SELECT quadraelote, celular1, celular2, telfixo FROM moradores";
+$execute = $mysqli->query($sql_code) or die($mysqli->error);
+$morador = $execute->fetch_assoc();
+$num = $execute->num_rows;
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]', '2', 'Dial', 'SIP/$_POST[quadralote]1,15,t' )");
+$moradorselect = $_POST['moradorselecionado'];
+$mtodos = $_POST['moradortodos'];
+$iden = $_POST['idanuncio'];
+$destino = $_POST['destino'];
+$nomedoaudio = $_POST['audioselecionado'];
+$dpto = $_POST['departamento'];
+$operador = $_POST['operador'];
 
-$dial = '$["${DIALSTATUS}" = "NOANSWER"]?:4:5';
+//Remover .SLN do nome do arquivo
+$removesln = array(".sln");
+$nomedoaudio2 = str_replace($removesln, "", $nomedoaudio);
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]', '3', 'Dial', 'SIP/$_POST[quadralote]2,15,t')");
+//Enviando os dados para o banco de dados caso TODOS moradores foram selecionados
+if (isset($_POST['moradortodos'])) {
+    if ($num > 0) {
+        do {
+            mysqli_query($mysqli, "INSERT INTO anuncios (nome, operador, audio, destino, destino_discagem, id_anuncio, celular1, celular2, telfixo) VALUES ('$_POST[nome]', '$_POST[operador]', '$_POST[audioselecionado]', '$_POST[destino]', '$morador[quadraelote]', '$iden', '$morador[celular1]', '$morador[celular2]', '$morador[telfixo]')");
+        } while ($morador = $execute->fetch_assoc());
+    }else{
+        echo "Não existe moradores!";
+    }
+    //Enviando os dados para o banco de dados caso ALGUNS moradores foram selecionados
+} elseif (empty($mtodos)) { foreach ($moradorselect as $quadraelote) {
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]', '4', 'Playback', 'followme/pls-hold-while-try')");
+    $sql_code3 = "SELECT celular1, celular2, telfixo FROM moradores WHERE quadraelote='$quadraelote'";
+    $executa = $mysqli->query($sql_code3) or die($mysqli->error);
+    $morador3 = $executa->fetch_assoc();
+    $cel1 = $morador3["celular1"];
+    $cel2 = $morador3["celular2"];
+    $fixo = $morador3["telfixo"];
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]', '5', 'Dial', 'SIP/Vittel/55$_POST[telfixo],30,TtM(execamd)')");
+    mysqli_query($mysqli, "INSERT INTO anuncios (nome, operador, audio, destino, destino_discagem, id_anuncio, celular1, celular2, telfixo) VALUES ('$_POST[nome]', '$_POST[operador]', '$_POST[audioselecionado]', '$_POST[destino]', '$quadraelote', '$iden', '$cel1', '$cel2', '$fixo')");
+    }
+} else {
+    echo "Erro";
+}
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]', '6', 'Dial', 'SIP/Vittel/55$_POST[celular1],30,TtM(execamd2)')");
+$sql_code2 = "SELECT id, destino_discagem, nome FROM anuncios WHERE id_anuncio = '$iden'";
+$execute2 = $mysqli->query($sql_code2) or die($mysqli->error);
+$morador2 = $execute2->fetch_assoc();
+$num2 = $execute2->num_rows;
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]', '7', 'Dial', 'SIP/Vittel/55$_POST[celular2],30,Tt')");
+$query = mysqli_query($mysqli,"SELECT destino_discagem, celular1, celular2, telfixo FROM anuncios WHERE id_anuncio = '$iden'");
+while($row = mysqli_fetch_array($query)){
+    $linha[] = $row['destino_discagem'];
+    $linha2[] = $row['celular1'];
+    $linha3[] = $row['celular2'];
+    $linha4[] = $row['telfixo'];
+}
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app) VALUES ('from-internal', '_$_POST[quadralote]', '8', 'Hangup')");
-//Enviando para o usuario 1
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app) VALUES ('from-internal', '_$_POST[quadralote]1', '1', 'Answer')");
+$i=0;
+$canais = 3;
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]1', '2', 'Dial', 'SIP/$_POST[quadralote]1,15,t' )");
+//Gera o arquivo
+if ($destino == "app"){
 
-$dial = '$["${DIALSTATUS}" = "NOANSWER"]?:4:5';
+while($num2 > 0 ){
+if( count(glob("/var/spool/asterisk/outgoing/{*.call}",GLOB_BRACE)) < $canais ){
+$id             = $morador2['id'];
+$numero         = $linha[$i];
+$nomeanuncio    = $morador2['nome'];
+$channel        = "Channel: SIP/" . $numero."1";
+$channel2       = "Channel: SIP/" . $numero."2";
+$callerid       = "Callerid: ".$operador." ".$dpto."";
+$maxretries     = "MaxRetries: 2";
+$retrytime      = "RetryTime: 60";
+$waittime       = "WaitTime: 30";
+$context        = "Context: from-users";
+$extension      = "Extension: s";
+$priority       = "Priority: 1";
+$set            = "Set: CDR(userfield)= ".$nomeanuncio;
+$app            = "Application: Playback";
+$data           = "Data: /var/lib/asterisk/sounds/pt_BR/" . $nomedoaudio2;
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]1', '3', 'GotoIf', '$dial')");
+//Arquivo do app do Proprietario
+$dados = $channel . PHP_EOL . $callerid . PHP_EOL . $maxretries . PHP_EOL . $retrytime . PHP_EOL . $waittime . PHP_EOL . $context . PHP_EOL . $extension . PHP_EOL . $priority . PHP_EOL . $set . PHP_EOL . $app . PHP_EOL . $data . PHP_EOL;
+$file  = fopen("audio/".$numero."1.call","a");
+fwrite($file,$dados);
+fclose($file);
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]1', '4', 'Playback', 'followme/pls-hold-while-try')");
+//Arquivo do app do Conjuge
+$dados2 = $channel2 . PHP_EOL . $callerid . PHP_EOL . $maxretries . PHP_EOL . $retrytime . PHP_EOL . $waittime . PHP_EOL . $context . PHP_EOL . $extension . PHP_EOL . $priority . PHP_EOL . $set . PHP_EOL . $app . PHP_EOL . $data . PHP_EOL;
+$file2  = fopen("audio/".$numero."2.call","a");
+fwrite($file2,$dados2);
+fclose($file2);
+shell_exec("sudo mv audio/".$numero."1.call /var/spool/asterisk/outgoing/".$numero."1.call");
+shell_exec("sudo mv audio/".$numero."2.call /var/spool/asterisk/outgoing/".$numero."2.call");
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]1', '5', 'Dial', 'SIP/Vittel/55$_POST[celular1]')");
+$num2 = $num2 -1;
+$i    = $i + 1;
+mysqli_query($mysqli, "UPDATE anuncios set status = 'Exito' WHERE destino_discagem ='$numero' AND id_anuncio = '$iden'");
+}
+sleep(2);
+}
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app) VALUES ('from-internal', '_$_POST[quadralote]1', '6', 'Hangup')");
-// FIM
-//Enviando para o usuario 2
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app) VALUES ('from-internal', '_$_POST[quadralote]2', '1', 'Answer')");
+}elseif ($destino == "celfixo"){
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]2', '2', 'Dial', 'SIP/$_POST[quadralote]2,15,t' )");
+    while($num2 > 0 ){
+        if( count(glob("/var/spool/asterisk/outgoing/{*.call}",GLOB_BRACE)) < $canais ){
+            $id             = $morador2['id'];
+            $numero         = $linha2[$i];
+            $numero2        = $linha3[$i];
+            $numero3        = $linha4[$i];
+            $nomeanuncio    = $morador2['nome'];
+            $channel        = "Channel: SIP/Vittel/55" . $numero3;
+            $channel2       = "Channel: SIP/Vittel/55" . $numero;
+            $channel3       = "Channel: SIP/Vittel/55" . $numero2;
+            $callerid       = "Callerid: ".$operador." ".$dpto."";
+            $maxretries     = "MaxRetries: 2";
+            $retrytime      = "RetryTime: 60";
+            $waittime       = "WaitTime: 30";
+            $context        = "Context: from-external";
+            $extension      = "Extension: s";
+            $priority       = "Priority: 1";
+            $set            = "Set: CDR(userfield)= ".$nomeanuncio;
+            $app            = "Application: Playback";
+            $data           = "Data: /var/lib/asterisk/sounds/pt_BR/" . $nomedoaudio2;
 
-$dial = '$["${DIALSTATUS}" = "NOANSWER"]?:4:5';
+            //Arquivo do telefone fixo
+            $dados = $channel . PHP_EOL . $callerid . PHP_EOL . $maxretries . PHP_EOL . $retrytime . PHP_EOL . $waittime . PHP_EOL . $context . PHP_EOL . $extension . PHP_EOL . $priority . PHP_EOL . $set . PHP_EOL . $app . PHP_EOL . $data . PHP_EOL;
+            $file  = fopen("audio/".$numero3.".call","a");
+            fwrite($file,$dados);
+            fclose($file);
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]2', '3', 'GotoIf', '$dial')");
+            //Arquivo do Celular do Proprietario
+            $dados2 = $channel2 . PHP_EOL . $callerid . PHP_EOL . $maxretries . PHP_EOL . $retrytime . PHP_EOL . $waittime . PHP_EOL . $context . PHP_EOL . $extension . PHP_EOL . $priority . PHP_EOL . $set . PHP_EOL . $app . PHP_EOL . $data . PHP_EOL;
+            $file2  = fopen("audio/".$numero.".call","a");
+            fwrite($file2,$dados2);
+            fclose($file2);
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]2', '4', 'Playback', 'followme/pls-hold-while-try')");
+            //Arquivo do Celular do Conjuge
+            $dados3 = $channel3 . PHP_EOL . $callerid . PHP_EOL . $maxretries . PHP_EOL . $retrytime . PHP_EOL . $waittime . PHP_EOL . $context . PHP_EOL . $extension . PHP_EOL . $priority . PHP_EOL . $set . PHP_EOL . $app . PHP_EOL . $data . PHP_EOL;
+            $file3  = fopen("audio/".$numero2.".call","a");
+            fwrite($file3,$dados3);
+            fclose($file3);
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app, appdata) VALUES ('from-internal', '_$_POST[quadralote]2', '5', 'Dial', 'SIP/Vittel/55$_POST[celular2]')");
+            shell_exec("sudo mv audio/".$numero3.".call /var/spool/asterisk/outgoing/".$numero3.".call");
+            shell_exec("sudo mv audio/".$numero.".call /var/spool/asterisk/outgoing/".$numero.".call");
+            shell_exec("sudo mv audio/".$numero2.".call /var/spool/asterisk/outgoing/".$numero2.".call");
 
-mysqli_query($mysqli,"INSERT INTO extensions (context, exten, priority, app) VALUES ('from-internal', '_$_POST[quadralote]2', '6', 'Hangup')");
-// FIM
-mysqli_query($mysqli,"INSERT INTO sip_buddies (name, defaultuser, secret, callerid) VALUES ( '$_POST[quadralote]', '$_POST[quadralote]', '172839', '$_POST[name]')");
+            $num2 = $num2 -1;
+            $i    = $i + 1;
+            mysqli_query($mysqli, "UPDATE anuncios SET status = 'Exito' WHERE destino ='celfixo' AND id_anuncio = '$iden'");
+        }
+        sleep(2);
+    }
 
-mysqli_query($mysqli,"INSERT INTO sip_buddies (name, defaultuser, secret, callerid, context) VALUES ( '$_POST[quadralote]1', '$_POST[quadralote]1', '$_POST[senhagerada]', '$_POST[name]', 'from-users')");
+}elseif ($destino == "ambos"){
 
-mysqli_query($mysqli,"INSERT INTO sip_buddies (name, defaultuser, secret, callerid, context) VALUES ( '$_POST[quadralote]2', '$_POST[quadralote]2', '$_POST[senhagerada2]', '$_POST[name]', 'from-users')");
+    while($num2 > 0 ){
+        if( count(glob("/var/spool/asterisk/outgoing/{*.call}",GLOB_BRACE)) < $canais ){
+            $id             = $morador2['id'];
+            $numero         = $linha[$i];
+            $nomeanuncio    = $morador2['nome'];
+            $channel        = "Channel: SIP/" . $numero;
+            $callerid       = "Callerid: ".$operador." ".$dpto."";
+            $maxretries     = "MaxRetries: 2";
+            $retrytime      = "RetryTime: 60";
+            $waittime       = "WaitTime: 30";
+            $context        = "Context: from-internal";
+            $extension      = "Extension: s";
+            $priority       = "Priority: 1";
+            $set            = "Set: CDR(userfield)= ".$nomeanuncio;
+            $app            = "Application: Playback";
+            $data           = "Data: /var/lib/asterisk/sounds/pt_BR/" . $nomedoaudio2;
 
-
-//Adicionando na tabela de visualização
-mysqli_query($mysqli,"INSERT INTO moradores (id, name, quadraelote, usuario1, senha1, celular1, usuario2, senha2, celular2, created, telfixo, conjuge) VALUES ( '$id_destino', '$_POST[name]', '$_POST[quadralote]', '$_POST[quadralote]1', '$_POST[senhagerada]', '$_POST[celular1]', '$_POST[quadralote]2', '$_POST[senhagerada2]', '$_POST[celular2]', '$_POST[hoje]', '$_POST[telfixo]', '$_POST[conjuge]')");
+            //Arquivo para ligar para o proprietário em todos os destinos (App, Cel1, Cel2 e Fixo)
+            $dados = $channel . PHP_EOL . $callerid . PHP_EOL . $maxretries . PHP_EOL . $retrytime . PHP_EOL . $waittime . PHP_EOL . $context . PHP_EOL . $extension . PHP_EOL . $priority . PHP_EOL . $set . PHP_EOL . $app . PHP_EOL . $data . PHP_EOL;
+            $file  = fopen("audio/".$numero.".call","a");
+            fwrite($file,$dados);
+            fclose($file);
+            shell_exec("sudo mv audio/".$numero.".call /var/spool/asterisk/outgoing/".$numero.".call");
+            $num2 = $num2 -1;
+            $i    = $i + 1;
+            mysqli_query($mysqli, "UPDATE anuncios set status = 'Exito' WHERE destino_discagem ='$numero' AND id_anuncio = '$iden'");
+        }
+        sleep(2);
+    }
+}
 
 //Atualiza ID da tabela
-mysqli_query($mysqli,"ALTER TABLE extensions AUTO_INCREMENT = 1");
-mysqli_query($mysqli,"ALTER TABLE moradores AUTO_INCREMENT = 1");
-mysqli_query($mysqli,"ALTER TABLE sip_buddies AUTO_INCREMENT = 1");
+mysqli_query($mysqli,"ALTER TABLE audios AUTO_INCREMENT = 1");
+mysqli_query($mysqli,"ALTER TABLE anuncios AUTO_INCREMENT = 1");
+
 ?>
 <?php
-header("location: ../customers"); /* Redireciona o navegador */
-
+header("location: ../anuncios/index.php"); /* Redireciona o navegador */
 exit;
 ?>
 

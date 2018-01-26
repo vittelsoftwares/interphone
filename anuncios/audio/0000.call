@@ -1,0 +1,11 @@
+Channel: SIP/0000
+Callerid: Dionisio Teste
+MaxRetries: 2
+RetryTime: 60
+WaitTime: 30
+Context: from-internal
+Extension: s
+Priority: 1
+Set: CDR(userfield)= Teste Anuncio
+Application: Playback
+Data: /var/lib/asterisk/sounds/pt_BR/AnuncioTeste

@@ -95,12 +95,12 @@ if (!isset($_SESSION['UsuarioID']) OR ($_SESSION['UsuarioNivel'] <$nivel_necessa
     <div class="row">
         <div class="form-group col-sm-3">
             <label for="name">Cônjuge</label>
-            <input type="text" class="form-control" name="conjuge" required>
+            <input type="text" class="form-control" name="conjuge" >
         </div>
 
         <div class="form-group col-sm-2">
             <label for="campo3">Celular</label>
-            <input type="text" class="form-control" name="celular2" onkeypress='return event.charCode >= 48 && event.charCode <= 57' maxlength="11" size="11" required>
+            <input type="text" class="form-control" name="celular2" onkeypress='return event.charCode >= 48 && event.charCode <= 57' maxlength="11" size="11" >
         </div>
     </div>
     <input type="hidden" class="form-control" name="senhagerada2" value="<?php echo $senha2; ?>" readonly><!--Senha2!-->
@@ -109,7 +109,7 @@ if (!isset($_SESSION['UsuarioID']) OR ($_SESSION['UsuarioNivel'] <$nivel_necessa
     <div class="row">
         <div class="form-group col-sm-2">
             <label for="name">Telefone Fixo</label>
-            <input type="text" class="form-control" name="telfixo" onkeypress='return event.charCode >= 48 && event.charCode <= 57' maxlength="10" size="10" required>
+            <input type="text" class="form-control" name="telfixo" onkeypress='return event.charCode >= 48 && event.charCode <= 57' maxlength="10" size="10">
         </div>
 
     <div class="form-group col-sm-2">

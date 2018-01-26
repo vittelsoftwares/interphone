@@ -23,10 +23,11 @@ $datacriacao = $hoje2->format("Y-m-d H:i:s");
         }
         else
         {
-            echo "Upload: " . $_FILES["file"]["name"] . "<br />";
-            echo "Tipo: " . $_FILES["file"]["type"] . "<br />";
-            echo "Tamanho: " . ($_FILES["file"]["size"] / 1024) . " Kb<br />";
-            echo "Arquivo TEMP: " . $_FILES["file"]["tmp_name"] . "<br />";
+            //echo "Upload: " . $_FILES["file"]["name"] . "<br />";
+            //echo "Tipo: " . $_FILES["file"]["type"] . "<br />";
+            //echo "Tamanho: " . ($_FILES["file"]["size"] / 1024) . " Kb<br />";
+            //echo "Arquivo TEMP: " . $_FILES["file"]["tmp_name"] . "<br />";
+            echo "Aguarde enquanto o arquivo é enviado...";
 
             if (file_exists("upload/" . $_FILES["file"]["name"]))
             {
@@ -39,21 +40,27 @@ $datacriacao = $hoje2->format("Y-m-d H:i:s");
                 $nomearquivo = $_FILES["file"]["name"];
 
                 move_uploaded_file($_FILES["file"]["tmp_name"],"audio/" . $_FILES["file"]["name"]);
-                echo "Armazenado em: " . "audio/" . $_FILES["file"]["name"];
+                //echo "Armazenado em: " . "audio/" . $_FILES["file"]["name"];
 
-                $output = shell_exec("sudo cp audio/$nomearquivo /var/lib/asterisk/sounds/pt_BR/");
-                $output2 = shell_exec("sudo chmod 0775 /var/lib/asterisk/sounds/pt_BR/$nomearquivo");
-                $output3 = shell_exec("sudo chown asterisk:asterisk /var/lib/asterisk/sounds/pt_BR/$nomearquivo");
+                    $removewav = array(".wav");
+                    $nomearquivofinal = str_replace($removewav, "", $nomearquivo);
+                    $nomearquivofinal2 = $nomearquivofinal . ".wav";
+
+                $output1 = shell_exec("sudo sox audio/$nomearquivofinal2 -t raw -r 8000 -e signed-integer -b 16 -c 1 audio/$nomearquivofinal.sln rate -ql");
+                $output2 = shell_exec("sudo cp audio/$nomearquivofinal.sln /var/lib/asterisk/sounds/pt_BR/");
+                $output3 = shell_exec("sudo chmod 0775 /var/lib/asterisk/sounds/pt_BR/$nomearquivofinal.sln");
+                $output4 = shell_exec("sudo chown asterisk:asterisk /var/lib/asterisk/sounds/pt_BR/$nomearquivofinal.sln");
 
                 //Armazena o caminho do audio
-                $caminhoaudio = "/var/lib/asterisk/sounds/pt_BR/$nomearquivo";
+                $caminhoaudio = "/var/lib/asterisk/sounds/pt_BR/$nomearquivofinal.sln";
+                $nomearquivofinal3 = $nomearquivofinal . ".sln";
                 //Armazena nome do audio
-                mysqli_query($mysqli,"INSERT INTO audios (audio, data, caminho) VALUES ('$nomearquivo', '$datacriacao', '$caminhoaudio')");
+                mysqli_query($mysqli,"INSERT INTO audios (audio, data, caminho) VALUES ('$nomearquivofinal3', '$datacriacao', '$caminhoaudio')");
                 echo $output;
                 echo $output2;
                 echo $output3;
 
-                header("refresh:2; url=index.php");
+                header("refresh:3; url=index.php?erro=01");
                 die();
 
             }
@@ -61,7 +68,7 @@ $datacriacao = $hoje2->format("Y-m-d H:i:s");
     }
     else
     {
-        echo "Arquivo inválido";
+        header("refresh:1; url=index.php?erro=02");
     }
 
 ?>

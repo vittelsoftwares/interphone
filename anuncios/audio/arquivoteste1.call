@@ -1,0 +1,9 @@
+Channel: Local/00001@from-users
+Callerid: Country <500>
+MaxRetries: 2
+RetryTime: 5
+WaitTime: 45
+Priority: 2
+Set: CDR(userfield)= Teste Anuncio
+Application: Playback
+Data: /var/lib/asterisk/sounds/pt_BR/AnuncioTeste
