@@ -1,5 +1,5 @@
 # interphone
-22/01/2018 -> Dionisio
+22/01/2018
 Primeira versão no Github adicionada.
 
 Para usar em outro BD e Asterisk será necessário alterar alguns arquivos:
